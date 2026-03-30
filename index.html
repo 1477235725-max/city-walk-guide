@@ -1,0 +1,357 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>城市漫步向导</title>
+<!-- 高德地图SDK -->
+<script type="text/javascript">
+window._AMapSecurityConfig = {
+    securityJsCode: '063cf87996ade55d605da015f4a36c0a',
+}
+</script>
+<script src="https://webapi.amap.com/maps?v=2.0&key=901de9730905a2eb52b41dec8c2e3bb8&plugin=AMap.Geolocation,AMap.PlaceSearch,AMap.Geocoder"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif}
+:root{--bg:#fff8ef;--paper:#fffdf8;--card:#ffffff;--ink:#24312c;--sub:#708278;--line:#efe4d2;--accent:#47b58f;--accent-2:#ffbf66;--accent-3:#7cc8ff;--accent-soft:#e8faf3;--sun:#fff1be;--shadow:0 20px 45px rgba(143,112,56,.10);--pill:999px;--round:28px;--safe-top:max(18px,env(safe-area-inset-top));--safe-bottom:max(18px,env(safe-area-inset-bottom))}
+*::-webkit-scrollbar{display:none}
+body{min-height:100vh;background:radial-gradient(circle at top,#fffdf7 0%,#fff6df 38%,#fef2df 100%);display:grid;place-items:center;padding:18px;color:var(--ink)}
+.app{width:min(100%,430px);height:min(920px,100vh - 20px);background:linear-gradient(180deg,#fffefb 0%,#fff8ec 100%);border-radius:40px;overflow:hidden;position:relative;border:1px solid rgba(255,255,255,.98);box-shadow:0 30px 80px rgba(164,132,67,.16)}
+.app::before{content:"";position:absolute;inset:-20% -10% auto;height:220px;background:radial-gradient(circle,rgba(255,240,189,.85),transparent 60%);pointer-events:none}
+.screen{height:100%;overflow:auto;padding:var(--safe-top) 16px calc(94px + var(--safe-bottom));scrollbar-width:none}
+.status{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;margin-bottom:14px;animation:fadeSlide .6s ease both}.status-icons{display:flex;align-items:center;gap:6px}.dot{width:6px;height:6px;border-radius:50%;background:var(--ink);opacity:.68}.battery{width:18px;height:10px;border:1.8px solid var(--ink);border-radius:3px;position:relative}.battery:after{content:"";position:absolute;right:-4px;top:2px;width:2px;height:4px;border-radius:1px;background:var(--ink)}
+.page{display:none}.page.active{display:block}
+.topbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;animation:fadeSlide .7s ease both}.avatar{width:48px;height:48px;border-radius:18px;background:linear-gradient(135deg,#fff5cf,#ffe2bf);display:grid;place-items:center;font-size:20px;box-shadow:0 10px 24px rgba(255,191,102,.20)}.brand strong{display:block;font-size:22px;font-weight:800;letter-spacing:.2px}.brand span{font-size:12px;color:var(--sub)}
+.icon-btn,.back-btn,.ghost-icon,.plain-btn{border:none;cursor:pointer;background:rgba(255,255,255,.9);box-shadow:var(--shadow);color:var(--ink);transition:transform .22s ease,box-shadow .22s ease,background .22s ease}.icon-btn:hover,.back-btn:hover,.ghost-icon:hover,.plain-btn:hover{transform:translateY(-2px);box-shadow:0 16px 32px rgba(143,112,56,.13)}.icon-btn{margin-left:auto;width:44px;height:44px;border-radius:18px;font-size:18px}.back-btn{width:42px;height:42px;border-radius:16px;font-size:18px}.ghost-icon{width:40px;height:40px;border-radius:16px;font-size:17px}.plain-btn{padding:10px 14px;border-radius:16px;font-size:12px;font-weight:700}
+.card{background:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.9);border-radius:var(--round);box-shadow:var(--shadow);backdrop-filter:blur(14px)}
+.hero{padding:22px;background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,249,237,.96));position:relative;overflow:hidden;animation:heroIn .75s ease both}.hero::after{content:"";position:absolute;right:-30px;top:-10px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(124,200,255,.22),transparent 68%)}.eyebrow{display:inline-flex;padding:8px 12px;border-radius:var(--pill);background:linear-gradient(180deg,#fff0ba,#ffd886);color:#7e5b1e;font-size:12px;font-weight:800;box-shadow:0 10px 18px rgba(255,191,102,.16)}.hero h1{margin-top:14px;font-size:35px;line-height:1.06;font-weight:800;letter-spacing:-.6px}.hero p{margin-top:10px;font-size:14px;line-height:1.82;color:var(--sub)}
+.hero-actions,.audio-actions,.route-actions,.detail-actions{display:flex;gap:10px;margin-top:18px}.btn{flex:1;border:none;border-radius:var(--pill);padding:13px 14px;font-size:14px;font-weight:800;cursor:pointer;transition:transform .22s ease,box-shadow .22s ease,filter .22s ease}.btn:hover{transform:translateY(-2px);filter:saturate(1.05)}.btn-primary{background:linear-gradient(135deg,#45b48f,#6cc9a7);color:#fff;box-shadow:0 14px 24px rgba(71,181,143,.28)}.btn-secondary{background:linear-gradient(135deg,#eef9f3,#f4fffb);color:var(--accent)}.btn-light{background:linear-gradient(135deg,#fff9f0,#fffdf9);color:var(--ink)}
+.hero-stats,.detail-grid,.lang-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}.detail-grid,.lang-grid{grid-template-columns:repeat(2,1fr)}.stat,.detail-box,.lang-card{padding:12px;border-radius:18px;background:linear-gradient(180deg,#fffefb,#fff6e9);border:1px solid rgba(255,255,255,.75)}.stat strong,.detail-box strong,.lang-card strong{display:block;font-size:15px}.stat span,.detail-box span,.lang-card span{font-size:11px;line-height:1.6;color:var(--sub)}
+.section{margin-top:18px;animation:fadeSlide .7s ease both}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.section-head h3{font-size:18px;font-weight:800}.section-head span{font-size:12px;color:var(--sub)}
+.chips-row,.scroll-x,.filter-row{display:flex;gap:10px;overflow:auto}.chip,.filter-chip{padding:10px 14px;border-radius:var(--pill);font-size:12px;font-weight:800;white-space:nowrap;border:1px solid #f2e7d2;background:rgba(255,255,255,.78);color:var(--sub);cursor:pointer;transition:all .22s ease}.chip:hover,.filter-chip:hover{transform:translateY(-1px);background:#fff}.chip.active,.filter-chip.active{background:linear-gradient(135deg,#fff0c3,#ffe39c);color:#7b5d26;border-color:#ffe2a4;box-shadow:0 10px 18px rgba(255,191,102,.14)}
+.location-card,.search-card,.map-card,.audio-card,.voice-card,.poi-summary,.profile-top{padding:16px}.location-row,.audio-row,.voice-title,.search-row{display:flex;align-items:center;gap:12px}.location-icon,.audio-icon{width:46px;height:46px;border-radius:18px;background:linear-gradient(180deg,#effcf7,#ddf7ef);display:grid;place-items:center;color:var(--accent);font-size:22px;box-shadow:0 10px 18px rgba(71,181,143,.14)}.location-copy strong,.audio-copy strong{display:block;font-size:16px}.location-copy p,.audio-copy p,.poi-copy p,.feed-copy p,.setting-copy p,.track-copy p{margin-top:4px;font-size:12px;line-height:1.72;color:var(--sub)}
+.mini-tag,.meta{padding:8px 12px;border-radius:var(--pill);background:#fff6e5;font-size:11px;font-weight:800;color:#7a6340}.meta{padding:6px 10px}
+.route-card{min-width:258px;padding:14px;border-radius:24px;background:linear-gradient(180deg,#ffffff,#fff8ef);border:1px solid rgba(255,255,255,.92);box-shadow:0 20px 34px rgba(143,112,56,.08);animation:floatIn .55s ease both}.route-card:nth-child(2){animation-delay:.07s}.route-card:nth-child(3){animation-delay:.14s}.route-card h4{margin-top:12px;font-size:18px;font-weight:800}.route-card p{margin-top:8px;font-size:12px;line-height:1.75;color:var(--sub)}.route-meta,.poi-meta,.feed-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.mini-btn{flex:1;border:none;padding:10px 12px;border-radius:var(--pill);font-size:12px;font-weight:800;cursor:pointer;transition:transform .22s ease,box-shadow .22s ease}.mini-btn:hover{transform:translateY(-1px)}.mini-primary{background:linear-gradient(135deg,#45b48f,#67c9a5);color:#fff;box-shadow:0 10px 18px rgba(71,181,143,.22)}.mini-ghost{background:linear-gradient(135deg,#f2fbf7,#fafffd);color:var(--accent)}
+.route-cover{height:126px;border-radius:20px;padding:14px;display:flex;justify-content:space-between;align-items:flex-start;color:#fff;background:linear-gradient(135deg,#4ab69a,#8dd2bc);position:relative;overflow:hidden}.route-cover::after{content:"";position:absolute;right:-18px;bottom:-18px;width:88px;height:88px;border-radius:50%;background:rgba(255,255,255,.16)}.route-cover.alt{background:linear-gradient(135deg,#ffb058,#ffd48d)}.route-cover.soft{background:linear-gradient(135deg,#72b9ff,#b8ddff)}.cover-badge{padding:7px 10px;border-radius:var(--pill);background:rgba(255,255,255,.18);font-size:11px;font-weight:800}
+.map-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}.map-head p{font-size:12px;line-height:1.7;color:var(--sub)}.map-box{position:relative;height:288px;border-radius:24px;overflow:hidden;background:linear-gradient(180deg,#fff8eb,#fffdf6);border:1px solid rgba(255,255,255,.92)}.road,.shape,.pulse{position:absolute;inset:0;pointer-events:none}.road:before,.road:after,.shape:before,.shape:after,.pulse:before{content:"";position:absolute;border-radius:999px}.road:before{width:290px;height:18px;left:24px;top:122px;background:rgba(71,181,143,.12);transform:rotate(-8deg)}.road:after{width:220px;height:16px;right:30px;bottom:76px;background:rgba(124,200,255,.14);transform:rotate(12deg)}.shape:before{width:160px;height:60px;left:-20px;top:44px;background:rgba(255,236,183,.7);transform:rotate(-8deg)}.shape:after{width:160px;height:64px;right:-10px;top:74px;background:rgba(226,250,240,.85);transform:rotate(14deg)}.pulse:before{width:160px;height:160px;left:50%;top:50%;transform:translate(-50%,-50%);border:1px dashed rgba(71,181,143,.14)}
+.spot{position:absolute;width:136px;padding:12px;border-radius:20px;background:rgba(255,255,255,.97);box-shadow:0 16px 28px rgba(140,112,68,.10);border:1px solid rgba(255,250,240,.98);cursor:pointer;backdrop-filter:blur(10px);animation:floatBob 4.6s ease-in-out infinite}.sp1{left:18px;top:24px;animation-delay:0s}.sp2{right:18px;top:34px;animation-delay:.6s}.sp3{left:124px;top:138px;animation-delay:1.2s}.sp4{right:52px;bottom:26px;animation-delay:1.8s}.spot h5{font-size:14px;font-weight:800}.spot p{margin-top:4px;font-size:11px;line-height:1.55;color:var(--sub)}.spot .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.spot-icon{width:34px;height:34px;border-radius:14px;display:grid;place-items:center;color:#fff;font-size:16px}.spot-badge{padding:5px 8px;border-radius:var(--pill);font-size:10px;font-weight:800;color:#fff;box-shadow:0 6px 14px rgba(0,0,0,.08)}.spot-distance{display:block;margin-top:8px;font-size:11px;font-weight:800;color:var(--accent)}.accent{background:#47b58f}.warm{background:#ffb464}.soft{background:#78c1ff}.gold{background:#f0b847}
+.feed-card,.list-card,.track-list{padding:14px;display:grid;gap:12px}.feed-item,.poi-item,.setting-item,.search-result,.track-item{display:flex;gap:12px;padding:12px;border-radius:20px;background:linear-gradient(180deg,#fffdf8,#faf5ec);border:1px solid rgba(255,255,255,.75);transition:transform .2s ease,box-shadow .2s ease}.feed-item:hover,.poi-item:hover,.setting-item:hover,.search-result:hover,.track-item:hover{transform:translateY(-2px);box-shadow:0 14px 24px rgba(143,112,56,.09)}.feed-cover,.poi-cover,.track-index{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;font-size:28px;flex-shrink:0}.track-index{background:linear-gradient(135deg,#fff0ba,#ffd886);font-size:18px;font-weight:800;color:#7f5e24}.poi-copy strong,.feed-copy strong,.setting-copy strong,.track-copy strong{display:block;font-size:15px;font-weight:800}
+.hero-photo{height:220px;border-radius:24px;padding:18px;display:flex;justify-content:space-between;align-items:flex-start;color:#fff;background:linear-gradient(135deg,#61bf9f,#d1efd9);position:relative;overflow:hidden}.hero-photo::after{content:"";position:absolute;right:-28px;bottom:-28px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.14)}
+.search-input{flex:1;border:none;background:#fff9f1;padding:14px 16px;border-radius:18px;font-size:14px;outline:none}.search-panel{padding:16px}.search-empty{padding:24px;border-radius:22px;background:linear-gradient(180deg,#fffef9,#faf5ec);text-align:center;color:var(--sub);font-size:13px;line-height:1.8}
+.ar-stage{height:420px;border-radius:28px;overflow:hidden;position:relative;background:linear-gradient(180deg,#ffeecb,#fff8eb 48%,#f0fff8);border:1px solid rgba(255,255,255,.92)}.camera-layer{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.04)),radial-gradient(circle at 50% 62%,rgba(255,255,255,.22),transparent 34%)}.ar-frame{position:absolute;inset:24px;border:1px dashed rgba(71,181,143,.28);border-radius:24px}.ar-label{position:absolute;padding:10px 12px;border-radius:18px;background:rgba(255,255,255,.88);box-shadow:var(--shadow);font-size:12px;font-weight:800}.ar1{left:26px;top:72px}.ar2{right:28px;top:126px}.ar3{left:126px;bottom:94px}.guide-line{position:absolute;left:50%;bottom:28px;transform:translateX(-50%);width:180px;height:180px;border-radius:50%;border:2px solid rgba(71,181,143,.12)}.guide-line:after{content:"";position:absolute;left:50%;top:18px;transform:translateX(-50%);width:18px;height:90px;border-radius:999px;background:linear-gradient(180deg,rgba(71,181,143,.48),rgba(71,181,143,0))}
+.voice-wave{height:92px;border-radius:20px;background:linear-gradient(180deg,#fff7ea,#fffdf7);display:flex;align-items:flex-end;gap:6px;padding:16px;margin-top:16px}.voice-wave i{flex:1;background:linear-gradient(180deg,#47b58f,#7fd4ff);border-radius:999px 999px 6px 6px;animation:wave 1.9s ease-in-out infinite}.voice-wave i:nth-child(1){height:26px;animation-delay:.1s}.voice-wave i:nth-child(2){height:48px;animation-delay:.3s}.voice-wave i:nth-child(3){height:72px;animation-delay:.5s}.voice-wave i:nth-child(4){height:38px;animation-delay:.2s}.voice-wave i:nth-child(5){height:62px;animation-delay:.45s}.voice-wave i:nth-child(6){height:30px;animation-delay:.15s}.voice-wave i:nth-child(7){height:54px;animation-delay:.35s}
+.profile-user{display:flex;gap:14px;align-items:center}.profile-avatar{width:58px;height:58px;border-radius:22px;background:linear-gradient(135deg,#fff2c8,#ffdca0);display:grid;place-items:center;font-size:24px;box-shadow:0 12px 22px rgba(255,191,102,.18)}.setting-list{display:grid;gap:10px}.setting-item{align-items:center;justify-content:space-between}.setting-copy{flex:1}
+.bottom-nav{position:absolute;left:14px;right:14px;bottom:calc(10px + var(--safe-bottom));padding:12px 10px;background:rgba(255,255,255,.92);border:1px solid rgba(255,255,255,.98);box-shadow:0 18px 30px rgba(40,31,24,.10);border-radius:28px;display:grid;grid-template-columns:repeat(5,1fr);gap:6px;backdrop-filter:blur(14px)}.nav-item{display:grid;justify-items:center;gap:4px;font-size:11px;color:#98a79c;font-weight:800;cursor:pointer;transition:transform .22s ease,color .22s ease}.nav-item:hover{transform:translateY(-1px)}.nav-item i{font-style:normal;font-size:18px}.nav-item.active{color:var(--accent)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(12px);padding:12px 16px;border-radius:16px;background:rgba(36,49,44,.92);color:#fff;font-size:13px;box-shadow:0 18px 30px rgba(32,28,24,.24);opacity:0;pointer-events:none;transition:opacity .25s ease,transform .25s ease;z-index:40}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes heroIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes floatIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes floatBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes wave{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.84)}}
+@media (max-width:480px){body{padding:0}.app{width:100%;height:100vh;border-radius:0}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="screen">
+<div class="status"><span>9:41</span><div class="status-icons"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="battery"></div></div></div>
+<section class="page active" id="page-home">
+<div class="topbar"><div class="avatar">◇</div><div class="brand"><strong>城市漫步向导</strong><span>本地探索 / 小众推荐 / 自动讲解</span></div><button class="icon-btn" type="button" data-open-search>⌕</button></div>
+<div class="hero card"><div class="eyebrow">本周推荐 · 夜游与拍照</div><h1>以更安静的方式，<br>重新认识这座城</h1><p>聚合本地达人内容、小众地点推荐、AR 导航指引和路线中的自动语音讲解。现在也支持定位、距离展示和一键导航。</p><div class="hero-actions"><button class="btn btn-primary" id="recommendBtn">推荐打卡点</button><button class="btn btn-secondary" data-nav-page="routes">附近推荐</button><button class="btn btn-light" data-nav-page="ar">AR 导航</button></div><div class="hero-stats"><div class="stat"><strong id="heroRoutes">12</strong><span>附近路线</span></div><div class="stat"><strong id="heroPoi">6</strong><span>探索点位</span></div><div class="stat"><strong id="heroNearest">待定位</strong><span>离你最近</span></div></div></div>
+<section class="section location-card card"><div class="section-head"><h3>我的位置</h3><span>用于计算步行距离</span></div><div class="location-row"><div class="location-icon">⌖</div><div class="location-copy"><strong id="locationTitle">尚未获取定位</strong><p id="locationSub">点击右侧按钮后，页面会展示各个地点离你的距离，并支持导航过去。</p></div><button class="plain-btn" id="locateBtn" type="button">获取定位</button></div></section>
+<section class="section"><div class="section-head"><h3>探索主题</h3><span>附近推荐流</span></div><div class="chips-row"><div class="chip active">夜游路线</div><div class="chip">拍照友好</div><div class="chip">达人精选</div><div class="chip">自动讲解</div></div></section>
+<section class="section"><div class="section-head"><h3>附近热门路线</h3><span>为本地年轻人准备</span></div><div class="scroll-x" id="homeRouteList"></div></section>
+<section class="section map-card card"><div class="map-head"><div><h3>附近小众地点</h3><p>按距离、热度和达人内容信号综合排序，可以直接查看详情或导航。</p></div><div class="mini-tag">1.5KM</div></div><div class="map-box"><div class="road"></div><div class="shape"></div><div class="pulse"></div><article class="spot sp1" data-open-poi="poi1"><div class="top"><div class="spot-icon accent">●</div><div class="spot-badge accent">夜景</div></div><h5>巷口老灯牌</h5><p>拍夜景氛围很好，适合第一站。</p><span class="spot-distance" data-distance-for="poi1">定位后显示距离</span></article><article class="spot sp2" data-open-poi="poi2"><div class="top"><div class="spot-icon soft">◇</div><div class="spot-badge soft">小众</div></div><h5>旧厂房花墙</h5><p>白天和傍晚都很出片。</p><span class="spot-distance" data-distance-for="poi2">定位后显示距离</span></article><article class="spot sp3" data-open-poi="poi3"><div class="top"><div class="spot-icon gold">▤</div><div class="spot-badge gold">达人荐</div></div><h5>老街牌匾角</h5><p>适合站拍和慢速短视频。</p><span class="spot-distance" data-distance-for="poi3">定位后显示距离</span></article><article class="spot sp4" data-open-poi="poi4"><div class="top"><div class="spot-icon warm">◍</div><div class="spot-badge warm">讲解点</div></div><h5>河边旧桥位</h5><p>到点自动播放语音故事。</p><span class="spot-distance" data-distance-for="poi4">定位后显示距离</span></article></div><section class="section" style="margin-top:14px"><div class="section-head"><h3>离你最近的点位</h3><span>自动按距离排序</span></div><div class="list-card" id="nearbyPoiList"></div></section></section>
+<section class="section audio-card card"><div class="section-head"><h3>自动语音讲解</h3><span>路线中自动触发</span></div><div class="audio-row"><div class="audio-icon">▷</div><div class="audio-copy"><strong>靠近旧桥位时自动播放</strong><p>“这座桥是很多本地人童年回忆的一部分，晚上灯亮起来的时候特别温柔。”</p></div></div><div class="route-actions"><button class="btn btn-primary" data-nav-page="voice">试听讲解</button><button class="btn btn-secondary" data-action="translate">实时翻译</button></div></section>
+<section class="section"><div class="section-head"><h3>达人内容聚合</h3><span>本地灵感流</span></div><div class="feed-card card"><div class="feed-item"><div class="feed-cover" style="background:#ece5db">⌖</div><div class="feed-copy"><strong>“这条路 7 点后最好看”</strong><p>适合本地年轻人下班后散步，路口灯牌和旧建筑一起出现的时候很有城市电影感。</p><div class="feed-meta"><span>夜游</span><span>好拍</span><span>本地达人 阿原</span></div></div></div><div class="feed-item"><div class="feed-cover" style="background:#e3ebe8">♫</div><div class="feed-copy"><strong>“这里很适合边走边听讲解”</strong><p>每走到一个点位都能自动触发简短语音，让探索感更完整，不会像纯打卡那样空。</p><div class="feed-meta"><span>语音讲解</span><span>路线体验</span><span>本地达人 晚风</span></div></div></div></div></section>
+</section>
+<section class="page" id="page-routes"><div class="topbar"><button class="back-btn" data-back-home>←</button><div class="brand"><strong>路线推荐</strong><span>附近推荐流 / 可一键导航</span></div><button class="ghost-icon" data-open-search>⌕</button></div><section class="section"><div class="section-head"><h3>筛选</h3><span>切换主题</span></div><div class="chips-row"><div class="chip active">夜游</div><div class="chip">拍照</div><div class="chip">历史感</div><div class="chip">约会友好</div></div></section><section class="section"><div class="section-head"><h3>精选路线</h3><span>共 3 条</span></div><div class="list-card" id="routeListPage"></div></section></section>
+<section class="page" id="page-detail"><div class="topbar"><button class="back-btn" data-back="routes">←</button><div class="brand"><strong>路线详情</strong><span id="detailSubtitle">沉浸式城市漫步</span></div></div><div class="hero-photo card"><div><div class="cover-badge">路线详情</div><h2 id="detailTitle" style="margin-top:12px;font-size:30px;line-height:1.1">梧桐灯影漫步</h2></div><div style="font-size:30px" id="detailGlyph">◐</div></div><div class="poi-summary card section"><h2 id="detailHeading">梧桐灯影漫步</h2><p id="detailDescription">老街灯牌、晚风路口和河边反光位，适合边走边拍，节奏轻松。</p><div class="detail-grid"><div class="detail-box"><strong>路线长度</strong><span id="detailDistance">1.2km</span></div><div class="detail-box"><strong>建议时长</strong><span id="detailDuration">45分钟</span></div><div class="detail-box"><strong>适合时间</strong><span id="detailTime">傍晚 18:30 之后</span></div><div class="detail-box"><strong>体验亮点</strong><span id="detailFeature">自动语音讲解 / 夜景拍照</span></div></div><div class="detail-actions"><button class="btn btn-light" id="favoriteRouteBtn">收藏路线</button><button class="btn btn-light" id="shareRouteBtn">分享路线</button></div><div class="hero-actions"><button class="btn btn-primary" id="startRouteBtn">开始这条路线</button><button class="btn btn-secondary" data-nav-page="voice">试听讲解</button></div></div><section class="section"><div class="section-head"><h3>路线轨迹</h3><span>按建议顺序浏览</span></div><div class="track-list card" id="routeTrackList"></div></section><section class="section"><div class="section-head"><h3>路线经过点</h3><span id="detailPoiCount">共 4 个</span></div><div class="list-card" id="detailPoiList"></div></section></section>
+<section class="page" id="page-poi"><div class="topbar"><button class="back-btn" data-back-home>←</button><div class="brand"><strong>地点详情</strong><span id="poiSubtitle">本地达人精选点位</span></div></div><div class="hero-photo card" id="poiPhoto"><div><div class="cover-badge">附近地点</div><h2 id="poiTitle" style="margin-top:12px;font-size:30px;line-height:1.1">巷口老灯牌</h2></div><div style="font-size:30px" id="poiGlyph">●</div></div><div class="poi-summary card section"><h2 id="poiHeading">巷口老灯牌</h2><p id="poiDescription">拍夜景氛围很好，适合第一站，尤其适合下班后随手走过去。</p><div class="detail-grid"><div class="detail-box"><strong>离你距离</strong><span id="poiDistance">定位后显示</span></div><div class="detail-box"><strong>建议时段</strong><span id="poiBestTime">19:00 - 21:00</span></div><div class="detail-box"><strong>语音讲解</strong><span id="poiAudio">可自动触发</span></div><div class="detail-box"><strong>标签</strong><span id="poiTags">夜景 / 拍照 / 打卡</span></div></div><div class="hero-actions"><button class="btn btn-primary" id="poiNavigateBtn">导航过去</button><button class="btn btn-secondary" id="poiAudioBtn">试听讲解</button></div></div><section class="section"><div class="section-head"><h3>地点说明</h3><span>搜索详情页</span></div><div class="feed-card card"><div class="feed-item"><div class="feed-cover" style="background:#ece5db">⌖</div><div class="feed-copy"><strong>达人推荐理由</strong><p id="poiReason">这一站适合作为夜游第一站，离主干道不远，但氛围已经完全切换成城市夜景模式。</p></div></div><div class="feed-item"><div class="feed-cover" style="background:#e3ebe8">▷</div><div class="feed-copy"><strong>讲解内容</strong><p id="poiAudioText">到达后自动播放一段 30 秒的语音讲解，也可以手动点开继续听。</p></div></div></div></section></section>
+<section class="page" id="page-search"><div class="topbar"><button class="back-btn" data-back-home>←</button><div class="brand"><strong>搜索探索点</strong><span>地点详情 / 距离 / 导航</span></div></div><section class="search-card card"><div class="search-row"><input class="search-input" id="searchInput" type="text" placeholder="搜索地点、标签或路线关键词"><button class="plain-btn" id="searchBtn" type="button">搜索</button></div><div class="filter-row" style="margin-top:12px"><button class="filter-chip active" data-filter="all">全部</button><button class="filter-chip" data-filter="夜景">夜景</button><button class="filter-chip" data-filter="拍照">拍照</button><button class="filter-chip" data-filter="讲解点">讲解点</button><button class="filter-chip" data-filter="咖啡">咖啡</button></div></section><section class="section"><div class="section-head"><h3>搜索结果</h3><span id="searchCount">共 0 条</span></div><div class="search-panel card" id="searchResults"></div></section></section>
+<section class="page" id="page-ar"><div class="topbar"><button class="back-btn" data-back-home>←</button><div class="brand"><strong>AR 导航</strong><span>实时方向指引 / 附近点位识别</span></div></div><div class="ar-stage card"><div class="camera-layer"></div><div class="ar-frame"></div><div class="ar-label ar1" id="arLabel1">下一站：巷口老灯牌 · 前方待定位</div><div class="ar-label ar2" id="arLabel2">右转后可见：河边旧桥位</div><div class="ar-label ar3">到达讲解点时会自动播放语音</div><div class="guide-line"></div></div><section class="section"><div class="section-head"><h3>当前导航</h3><span>实时更新</span></div><div class="list-card" id="arPoiList"></div></section></section>
+<section class="page" id="page-voice"><div class="topbar"><button class="back-btn" data-back-home>←</button><div class="brand"><strong>语音讲解</strong><span>路线中自动触发 / 支持翻译</span></div></div><div class="voice-card card"><div class="voice-title"><div class="audio-icon">▷</div><div class="audio-copy"><strong>河边旧桥位 · 自动讲解中</strong><p>“这座桥是很多本地人童年回忆的一部分，晚上灯亮起来的时候特别温柔。”</p></div></div><div class="voice-wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="audio-actions"><button class="btn btn-primary" data-action="play-audio">暂停 / 继续</button><button class="btn btn-secondary" data-action="translate">实时翻译</button></div><div class="lang-grid"><div class="lang-card"><strong>原文语言</strong><span>中文普通话讲解</span></div><div class="lang-card"><strong>翻译模式</strong><span>英 / 日 / 韩 即时切换</span></div></div></div></section>
+<section class="page" id="page-profile"><div class="topbar"><div class="brand"><strong>我的</strong><span>探索记录 / 收藏路线 / 设置</span></div></div><div class="profile-top card"><div class="profile-user"><div class="profile-avatar">○</div><div><strong style="display:block;font-size:20px">城市散步者</strong><span style="font-size:12px;color:var(--sub)">本周已探索 3 条路线</span></div></div><div class="hero-stats"><div class="stat"><strong id="favCount">0</strong><span>收藏路线</span></div><div class="stat"><strong>7</strong><span>已完成路线</span></div><div class="stat"><strong>4h</strong><span>本周漫步时长</span></div></div></div><section class="section"><div class="section-head"><h3>设置与偏好</h3><span>个性化体验</span></div><div class="setting-list card"><div class="setting-item"><div class="setting-copy"><strong>自动语音讲解</strong><p>进入讲解点后自动播放</p></div><div class="mini-tag">已开启</div></div><div class="setting-item"><div class="setting-copy"><strong>实时翻译</strong><p>为外语游客或跨语言讲解准备</p></div><div class="mini-tag">可用</div></div><div class="setting-item"><div class="setting-copy"><strong>定位权限</strong><p>用于展示离你距离和导航过去</p></div><div class="mini-tag" id="profileLocationStatus">未授权</div></div></div></section></section>
+</div>
+<nav class="bottom-nav"><div class="nav-item active" data-nav-page="home"><i>⌂</i><span>首页</span></div><div class="nav-item" data-nav-page="routes"><i>◇</i><span>路线</span></div><div class="nav-item" data-nav-page="search"><i>⌕</i><span>搜索</span></div><div class="nav-item" data-nav-page="ar"><i>⌖</i><span>AR</span></div><div class="nav-item" data-nav-page="profile"><i>○</i><span>我的</span></div></nav>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+// 高德地图相关变量
+let amapGeolocation = null;
+const userLocation={lat:null,lng:null,label:'人民广场附近'};
+const state={searchFilter:'all',favorites:new Set()};
+const pois=[
+{id:'poi1',name:'巷口老灯牌',glyph:'●',lat:31.2326,lng:121.4748,bestTime:'19:00 - 21:00',tags:['夜景','拍照','打卡'],audio:'可自动触发',desc:'拍夜景氛围很好，适合第一站。',reason:'这一站适合作为夜游第一站，离主干道不远，但氛围已经完全切换成城市夜景模式。',audioText:'到达后自动播放一段 30 秒的语音讲解，也可以手动点开继续听。'},
+{id:'poi2',name:'旧厂房花墙',glyph:'◇',lat:31.2314,lng:121.4782,bestTime:'17:00 - 19:30',tags:['花墙','小众','拍照'],audio:'手动播放',desc:'白天和傍晚都很出片。',reason:'建筑表面和花墙形成自然背景，手机随手拍也很稳定。',audioText:'讲解内容会介绍旧厂房改造前后的变化和附近街区的新旧层次。'},
+{id:'poi3',name:'老街牌匾角',glyph:'▤',lat:31.2298,lng:121.4761,bestTime:'18:30 - 20:30',tags:['达人荐','慢视频','街景'],audio:'可自动触发',desc:'适合站拍和慢速短视频。',reason:'老招牌和斜向视角很好用，很容易拍出电影感。',audioText:'讲解会提醒你从哪个方向看过去，画面层次更好。'},
+{id:'poi4',name:'河边旧桥位',glyph:'◍',lat:31.2287,lng:121.4739,bestTime:'19:00 - 21:30',tags:['讲解点','夜游','桥景'],audio:'可自动触发',desc:'到点自动播放语音故事。',reason:'这里是路线中的记忆点，比较适合慢慢停留。',audioText:'会自动讲述桥边故事、本地记忆和晚风里的城市细节。'},
+{id:'poi5',name:'临街书报亭',glyph:'▣',lat:31.2305,lng:121.4712,bestTime:'18:00 - 20:00',tags:['街景','人文','拍照'],audio:'手动播放',desc:'适合拍有层次的街景。',reason:'人文气息很强，适合作为路线中的过渡点。',audioText:'讲解会介绍它为什么会被本地达人反复提到。'},
+{id:'poi6',name:'桥尾咖啡站',glyph:'△',lat:31.2272,lng:121.4769,bestTime:'全天',tags:['休息','咖啡','收尾'],audio:'无讲解',desc:'可以作为路线结束点。',reason:'走完路线之后可以在这里坐一下，收尾感很好。',audioText:'这里没有自动讲解，但会给出达人补充建议。'}
+];
+const routes=[
+{id:'r1',title:'梧桐灯影漫步',subtitle:'夜游路线 · 自动讲解',glyph:'◐',cover:'default',distance:'1.2km',duration:'45分钟',time:'傍晚 18:30 之后',feature:'自动语音讲解 / 夜景拍照',description:'老街灯牌、晚风路口和河边反光位，适合边走边拍，节奏轻松。',poiIds:['poi1','poi4','poi5','poi6']},
+{id:'r2',title:'巷口色彩打卡线',subtitle:'拍照路线 · 达人推荐',glyph:'□',cover:'alt',distance:'980m',duration:'35分钟',time:'下午 16:00 - 傍晚',feature:'拍照友好 / 转角花墙',description:'集合老招牌、转角花墙和有故事的店门口，适合周末轻松出片。',poiIds:['poi2','poi3','poi5']},
+{id:'r3',title:'旧城楼梯计划',subtitle:'城市漫步 · AR 导览',glyph:'△',cover:'soft',distance:'1.5km',duration:'60分钟',time:'周末白天或傍晚',feature:'AR 指引 / 屋顶视角',description:'从老社区楼梯、天桥边风景到屋顶视角，适合本地人重新认识城市。',poiIds:['poi3','poi4','poi6']}
+];
+let currentRoute=routes[0];
+let currentPoi=pois[0];
+const pages=document.querySelectorAll('.page');
+const navItems=document.querySelectorAll('.nav-item');
+function showToast(message){const toast=document.getElementById('toast');toast.textContent=message;toast.classList.add('show');clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.classList.remove('show'),2200)}
+function switchPage(page){pages.forEach(p=>p.classList.toggle('active',p.id===`page-${page}`));navItems.forEach(n=>n.classList.toggle('active',n.dataset.navPage===page));}
+function haversine(lat1,lng1,lat2,lng2){const R=6371000;const toRad=v=>v*Math.PI/180;const dLat=toRad(lat2-lat1);const dLng=toRad(lng2-lng1);const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;return 2*R*Math.asin(Math.sqrt(a));}
+function formatDistance(m){if(m==null||Number.isNaN(m))return '定位后显示';return m<1000?`${Math.round(m)}m`:`${(m/1000).toFixed(1)}km`;}
+function getPoi(id){return pois.find(p=>p.id===id)}
+function getDistanceToUser(poi){if(userLocation.lat==null||userLocation.lng==null)return null;return haversine(userLocation.lat,userLocation.lng,poi.lat,poi.lng)}
+function sortPoisByDistance(list){return [...list].sort((a,b)=>{const da=getDistanceToUser(a);const db=getDistanceToUser(b);if(da==null&&db==null)return 0;if(da==null)return 1;if(db==null)return -1;return da-db;});}
+function getNearestPoi(){return sortPoisByDistance(pois)[0]||null}
+function routeCoverClass(route){return route.cover==='alt'?'alt':route.cover==='soft'?'soft':''}
+function routeCard(route){const firstPoi=getPoi(route.poiIds[0]);const near=firstPoi?formatDistance(getDistanceToUser(firstPoi)):'定位后显示';const fav=state.favorites.has(route.id)?'已收藏':'查看详情';return `<div class="route-card"><div class="route-cover ${routeCoverClass(route)}"><div><div class="cover-badge">${route.subtitle.split(' · ')[0]}</div><h4 style="margin-top:10px;font-size:20px">${route.title}</h4></div><div style="font-size:28px">${route.glyph}</div></div><h4>${route.title}</h4><p>${route.description}</p><div class="route-meta"><span class="meta">${route.distance}</span><span class="meta">${route.duration}</span><span class="meta">最近点 ${near}</span></div><div class="route-actions"><button class="mini-btn mini-primary" data-open-route="${route.id}">${fav}</button><button class="mini-btn mini-ghost" data-start-route="${route.id}">开始路线</button></div></div>`}
+function renderRoutes(){document.getElementById('homeRouteList').innerHTML=routes.map(routeCard).join('');document.getElementById('routeListPage').innerHTML=routes.map(routeCard).join('');bindDynamicActions();}
+function renderNearbyList(){const list=sortPoisByDistance(pois).slice(0,4);document.getElementById('nearbyPoiList').innerHTML=list.map(poi=>`<div class="poi-item"><div class="poi-cover" style="background:#ece5db">${poi.glyph}</div><div class="poi-copy"><strong>${poi.name}</strong><p>${poi.desc}</p><div class="poi-meta"><span>${formatDistance(getDistanceToUser(poi))}</span><span>${poi.tags[0]}</span><span>${poi.bestTime}</span></div><div class="route-actions"><button class="mini-btn mini-primary" data-open-poi-btn="${poi.id}">地点详情</button><button class="mini-btn mini-ghost" data-nav-poi="${poi.id}">导航过去</button></div></div></div>`).join('');bindDynamicActions();}
+function renderDetail(route){currentRoute=route;document.getElementById('detailSubtitle').textContent=route.subtitle;document.getElementById('detailTitle').textContent=route.title;document.getElementById('detailHeading').textContent=route.title;document.getElementById('detailDescription').textContent=route.description;document.getElementById('detailDistance').textContent=route.distance;document.getElementById('detailDuration').textContent=route.duration;document.getElementById('detailTime').textContent=route.time;document.getElementById('detailFeature').textContent=route.feature;document.getElementById('detailGlyph').textContent=route.glyph;document.getElementById('detailPoiCount').textContent=`共 ${route.poiIds.length} 个`;document.getElementById('favoriteRouteBtn').textContent=state.favorites.has(route.id)?'取消收藏':'收藏路线';document.getElementById('routeTrackList').innerHTML=route.poiIds.map((id,i)=>{const poi=getPoi(id);return `<div class="track-item"><div class="track-index">${i+1}</div><div class="track-copy"><strong>${poi.name}</strong><p>${i===0?'适合作为路线起点。':i===route.poiIds.length-1?'适合作为路线收尾点。':'建议在这里停留拍照或听讲解。'}</p><div class="poi-meta"><span>${formatDistance(getDistanceToUser(poi))}</span><span>${poi.bestTime}</span></div></div></div>`}).join('');document.getElementById('detailPoiList').innerHTML=route.poiIds.map((id,i)=>{const poi=getPoi(id);return `<div class="poi-item"><div class="poi-cover" style="background:${i%2===0?'#ece5db':'#e3ebe8'}">${poi.glyph}</div><div class="poi-copy"><strong>${poi.name}</strong><p>${poi.desc}</p><div class="poi-meta"><span>${formatDistance(getDistanceToUser(poi))}</span><span>${poi.bestTime}</span></div><div class="route-actions"><button class="mini-btn mini-primary" data-open-poi-btn="${poi.id}">地点详情</button><button class="mini-btn mini-ghost" data-nav-poi="${poi.id}">导航过去</button></div></div></div>`}).join('');bindDynamicActions();}
+function renderPoiDetail(poi){currentPoi=poi;document.getElementById('poiTitle').textContent=poi.name;document.getElementById('poiHeading').textContent=poi.name;document.getElementById('poiGlyph').textContent=poi.glyph;document.getElementById('poiDescription').textContent=poi.desc;document.getElementById('poiDistance').textContent=formatDistance(getDistanceToUser(poi));document.getElementById('poiBestTime').textContent=poi.bestTime;document.getElementById('poiAudio').textContent=poi.audio;document.getElementById('poiTags').textContent=poi.tags.join(' / ');document.getElementById('poiReason').textContent=poi.reason;document.getElementById('poiAudioText').textContent=poi.audioText;}
+function renderArList(){const list=sortPoisByDistance(pois).slice(0,3);document.getElementById('arPoiList').innerHTML=list.map((poi,i)=>`<div class="poi-item"><div class="poi-cover" style="background:${i%2===0?'#e3ebe8':'#ece5db'}">${poi.glyph}</div><div class="poi-copy"><strong>${poi.name}</strong><p>${poi.desc}</p><div class="poi-meta"><span>${formatDistance(getDistanceToUser(poi))}</span><span>${i===0?'预计 2 分钟':'可导航'}</span></div><div class="route-actions"><button class="mini-btn mini-primary" data-open-poi-btn="${poi.id}">详情</button><button class="mini-btn mini-ghost" data-nav-poi="${poi.id}">导航</button></div></div></div>`).join('');const nearest=getNearestPoi();document.getElementById('arLabel1').textContent=nearest?`下一站：${nearest.name} · 前方 ${formatDistance(getDistanceToUser(nearest))}`:'下一站：等待定位';document.getElementById('arLabel2').textContent=nearest?'点开下方卡片可直接导航过去':'开启定位后展示方向';bindDynamicActions();}
+function renderSearchResults(keyword=''){const q=keyword.trim().toLowerCase();const filtered=sortPoisByDistance(pois).filter(p=>{const matchKeyword=!q||`${p.name} ${p.tags.join(' ')} ${p.desc}`.toLowerCase().includes(q);const matchFilter=state.searchFilter==='all'||p.tags.includes(state.searchFilter);return matchKeyword&&matchFilter;});document.getElementById('searchCount').textContent=`共 ${filtered.length} 条`;document.getElementById('searchResults').innerHTML=filtered.length?filtered.map(p=>`<div class="search-result"><div class="poi-cover" style="background:#ece5db">${p.glyph}</div><div class="poi-copy"><strong>${p.name}</strong><p>${p.desc}</p><div class="poi-meta"><span>${formatDistance(getDistanceToUser(p))}</span><span>${p.tags[0]}</span><span>${p.bestTime}</span></div><div class="route-actions"><button class="mini-btn mini-primary" data-open-poi-btn="${p.id}">查看详情</button><button class="mini-btn mini-ghost" data-nav-poi="${p.id}">导航过去</button></div></div></div>`).join(''):`<div class="search-empty">没有找到匹配地点。<br>可以试试搜索“夜游”“花墙”“桥”或“拍照”。</div>`;bindDynamicActions();}
+function updateLocationUI(){document.querySelectorAll('[data-distance-for]').forEach(node=>{const poi=getPoi(node.dataset.distanceFor);node.textContent=formatDistance(getDistanceToUser(poi));});document.getElementById('profileLocationStatus').textContent=userLocation.lat==null?'未授权':'已开启';document.getElementById('locationTitle').textContent=userLocation.lat==null?'尚未获取定位':userLocation.label;document.getElementById('locationSub').textContent=userLocation.lat==null?'点击右侧按钮后，页面会展示各个地点离你的距离，并支持导航过去。':'已获取你的位置，附近地点与路线都会显示离你的距离。';const nearest=getNearestPoi();document.getElementById('heroNearest').textContent=nearest?formatDistance(getDistanceToUser(nearest)):'待定位';document.getElementById('heroPoi').textContent=pois.length;document.getElementById('heroRoutes').textContent=routes.length;document.getElementById('favCount').textContent=state.favorites.size;renderRoutes();renderNearbyList();renderDetail(currentRoute);renderPoiDetail(currentPoi);renderArList();renderSearchResults(document.getElementById('searchInput')?document.getElementById('searchInput').value:'');}
+// 初始化高德地图定位
+function initAMapLocation() {
+    if (!window.AMap) {
+        console.warn('高德地图SDK未加载，将使用浏览器原生定位');
+        return false;
+    }
+
+    console.log('初始化高德地图定位...');
+    try {
+        amapGeolocation = new AMap.Geolocation({
+            enableHighAccuracy: true,
+            timeout: 10000,
+            needAddress: true,
+            extensions: 'all'
+        });
+
+        // 监听定位成功事件
+        amapGeolocation.on('complete', (result) => {
+            console.log('高德定位成功:', result);
+
+            // 获取地址信息
+            if (result.formattedAddress) {
+                userLocation.label = result.formattedAddress;
+            } else if (result.addressComponent) {
+                const addr = result.addressComponent;
+                userLocation.label = `${addr.city || ''}${addr.district || ''}${addr.township || ''}`;
+            }
+
+            // 获取经纬度
+            if (result.position) {
+                userLocation.lat = result.position.lat;
+                userLocation.lng = result.position.lng;
+            }
+
+            updateLocationUI();
+            showToast('定位成功，已更新距离。');
+
+            // 重置按钮状态
+            const btn = document.getElementById('locateBtn');
+            if (btn) btn.textContent = '重新定位';
+        });
+
+        // 监听定位失败事件
+        amapGeolocation.on('error', (error) => {
+            console.error('高德定位失败:', error);
+            const errorMsg = {
+                'PERMISSION_DENIED': '定位权限被拒绝',
+                'POSITION_UNAVAILABLE': '无法获取位置信息',
+                'TIMEOUT': '定位超时',
+                'UNKNOWN_ERROR': '未知错误'
+            };
+            showToast(errorMsg[error.info] || '定位失败，尝试使用浏览器定位');
+
+            // 重置按钮状态
+            const btn = document.getElementById('locateBtn');
+            if (btn) btn.textContent = '获取定位';
+        });
+
+        return true;
+    } catch (error) {
+        console.error('初始化高德定位失败:', error);
+        return false;
+    }
+}
+
+function requestLocation(){
+    const btn = document.getElementById('locateBtn');
+    if (!btn) {
+        console.error('找不到定位按钮');
+        return;
+    }
+
+    btn.textContent = '定位中...';
+    console.log('开始定位...');
+
+    // 检查浏览器是否支持定位
+    if (!navigator.geolocation) {
+        btn.textContent = '获取定位';
+        showToast('当前浏览器不支持定位，已切换为示例位置。');
+        console.error('浏览器不支持geolocation');
+        userLocation.lat = 31.2304;
+        userLocation.lng = 121.4737;
+        userLocation.label = '人民广场附近';
+        updateLocationUI();
+        return;
+    }
+
+    // 使用浏览器原生定位
+    console.log('使用浏览器原生定位');
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            console.log('定位成功:', pos);
+            userLocation.lat = pos.coords.latitude;
+            userLocation.lng = pos.coords.longitude;
+            userLocation.label = '已获取当前位置';
+            btn.textContent = '重新定位';
+            updateLocationUI();
+            showToast('定位成功，已更新距离。');
+        },
+        error => {
+            console.error('定位失败:', error);
+            console.error('错误代码:', error.code);
+            console.error('错误信息:', error.message);
+
+            const errorMessages = {
+                1: '定位权限被拒绝，请在浏览器设置中允许位置访问',
+                2: '无法获取位置信息，请检查网络连接',
+                3: '定位超时，请重试'
+            };
+            const msg = errorMessages[error.code] || '定位失败，已切换为示例位置';
+            showToast(msg);
+            btn.textContent = '获取定位';
+
+            // 切换为示例位置（上海人民广场）
+            userLocation.lat = 31.2304;
+            userLocation.lng = 121.4737;
+            userLocation.label = '上海人民广场（示例位置）';
+            updateLocationUI();
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 60000
+        }
+    );
+}
+function navigateToPoiById(id){
+    const poi=getPoi(id);
+    const url=`https://uri.amap.com/navigation?to=${poi.lng},${poi.lat},${encodeURIComponent(poi.name)}&mode=walk&src=codex&callnative=1&coordinate=gaode`;
+    window.open(url,'_blank');
+    showToast(`正在为你打开「${poi.name}」导航`);
+}
+function toggleFavoriteRoute(){if(state.favorites.has(currentRoute.id)){state.favorites.delete(currentRoute.id);showToast('已取消收藏路线');}else{state.favorites.add(currentRoute.id);showToast('已收藏这条路线');}updateLocationUI();}
+function shareCurrentRoute(){const text=`一起走这条路线吧：${currentRoute.title}`;if(navigator.share){navigator.share({title:currentRoute.title,text}).catch(()=>{});}else{navigator.clipboard?.writeText(text);showToast('路线文案已复制，方便你分享');}}
+function startCurrentRoute(){
+    switchPage('ar');
+    showToast(`正在为你开启「${currentRoute.title}」`);
+}
+
+// 推荐最近的打卡地点
+function recommendNearestPoi() {
+    if (!userLocation.lat || !userLocation.lng) {
+        showToast('请先获取定位，再推荐附近打卡地点');
+        return;
+    }
+
+    // 获取距离最近的3个POI
+    const nearestList = sortPoisByDistance(pois).slice(0, 3);
+
+    if (nearestList.length === 0) {
+        showToast('附近暂无打卡地点');
+        return;
+    }
+
+    // 显示推荐信息
+    const nearest = nearestList[0];
+    const message = `推荐最近的打卡地点：「${nearest.name}」\n距离你：${formatDistance(getDistanceToUser(nearest))}\n最佳时段：${nearest.bestTime}`;
+
+    // 可以使用alert或者自定义弹窗
+    if (confirm(message)) {
+        renderPoiDetail(nearest);
+        switchPage('poi');
+    }
+}
+function bindDynamicActions(){
+    document.querySelectorAll('[data-open-route]').forEach(btn=>btn.onclick=()=>{const route=routes.find(r=>r.id===btn.dataset.openRoute);renderDetail(route);switchPage('detail');});
+    document.querySelectorAll('[data-start-route]').forEach(btn=>btn.onclick=()=>{const route=routes.find(r=>r.id===btn.dataset.startRoute);renderDetail(route);startCurrentRoute();});
+    document.querySelectorAll('[data-open-poi],[data-open-poi-btn]').forEach(btn=>btn.onclick=()=>{const poi=getPoi(btn.dataset.openPoi||btn.dataset.openPoiBtn);renderPoiDetail(poi);switchPage('poi');});
+    document.querySelectorAll('[data-nav-poi]').forEach(btn=>btn.onclick=()=>navigateToPoiById(btn.dataset.navPoi));
+}
+
+// 绑定所有事件
+function bindAllEvents() {
+    document.querySelectorAll('[data-nav-page]').forEach(node=>node.addEventListener('click',()=>switchPage(node.dataset.navPage)));
+    document.querySelectorAll('[data-back-home]').forEach(btn=>btn.addEventListener('click',()=>switchPage('home')));
+    document.querySelectorAll('[data-back]').forEach(btn=>btn.addEventListener('click',()=>switchPage(btn.dataset.back)));
+    document.querySelectorAll('[data-open-search]').forEach(btn=>btn.addEventListener('click',()=>{switchPage('search');document.getElementById('searchInput').focus();renderSearchResults(document.getElementById('searchInput').value);}));
+    document.querySelectorAll('[data-action]').forEach(btn=>btn.addEventListener('click',()=>{const map={translate:'正在启动实时翻译。','play-audio':'正在切换讲解播放状态。'};showToast(map[btn.dataset.action]||'操作已触发。')}));
+    document.querySelectorAll('[data-filter]').forEach(btn=>btn.addEventListener('click',()=>{state.searchFilter=btn.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('active',x===btn));renderSearchResults(document.getElementById('searchInput').value);}));
+
+    const locateBtn = document.getElementById('locateBtn');
+    if (locateBtn) locateBtn.addEventListener('click',requestLocation);
+
+    const searchBtn = document.getElementById('searchBtn');
+    if (searchBtn) searchBtn.addEventListener('click',()=>renderSearchResults(document.getElementById('searchInput').value));
+
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.addEventListener('keydown',e=>{if(e.key==='Enter')renderSearchResults(e.target.value)});
+
+    const poiNavigateBtn = document.getElementById('poiNavigateBtn');
+    if (poiNavigateBtn) poiNavigateBtn.addEventListener('click',()=>navigateToPoiById(currentPoi.id));
+
+    const poiAudioBtn = document.getElementById('poiAudioBtn');
+    if (poiAudioBtn) poiAudioBtn.addEventListener('click',()=>{switchPage('voice');showToast(`正在试听「${currentPoi.name}」讲解`);});
+
+    const favoriteRouteBtn = document.getElementById('favoriteRouteBtn');
+    if (favoriteRouteBtn) favoriteRouteBtn.addEventListener('click',toggleFavoriteRoute);
+
+    const shareRouteBtn = document.getElementById('shareRouteBtn');
+    if (shareRouteBtn) shareRouteBtn.addEventListener('click',shareCurrentRoute);
+
+    const startRouteBtn = document.getElementById('startRouteBtn');
+    if (startRouteBtn) startRouteBtn.addEventListener('click',startCurrentRoute);
+
+    const recommendBtn = document.getElementById('recommendBtn');
+    if (recommendBtn) recommendBtn.addEventListener('click',recommendNearestPoi);
+
+    console.log('✓ 所有事件已绑定');
+}
+
+// 初始化页面
+function initializeApp() {
+    renderRoutes();
+    renderNearbyList();
+    renderDetail(routes[0]);
+    renderPoiDetail(pois[0]);
+    renderArList();
+    renderSearchResults('');
+    updateLocationUI();
+    bindDynamicActions();
+    bindAllEvents();
+    console.log('✓ 应用初始化完成');
+}
+
+// 等待DOM加载完成后再初始化
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM加载完成');
+    initializeApp();
+});
+
+// 等待页面完全加载
+window.addEventListener('load', () => {
+    console.log('页面完全加载完成');
+    console.log('应用已就绪，等待用户操作');
+});</script>
+</body>
+</html>
+
+
+
